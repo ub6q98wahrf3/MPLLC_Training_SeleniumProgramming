@@ -1,4 +1,5 @@
 package Programming;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -12,45 +13,46 @@ import org.openqa.selenium.interactions.Actions;
 
 public class _12_ActionsDemo {
 	/**
-	 * Steps:
-	 * 01. Open Chrome Browser
-	 * 02. Navigate to Amazon.com site
-	 * 03. Move the pointer to "shop by category" option of the header
-	 * 04. Move the pointer to "TV, Appliances, Electronics" from the header menu
-	 * 05. Move the pointer to "DSLR Cameras" option from the "TV..." sub menu and click on it.
-	 * 06. ON the DSLR page, click on the "Search" text field, enter "Nikon" and click on the "Search" button besides it.
-	 * 07. Click on the first result (independent of the product specifications)
-	 * 08. Get the text of the returned product
-	 * @throws InterruptedException 
+	 * STEPS:
+	 * 01. Open Chrome browser
+	 * 02. Get navigated to amazon.in site
+	 * 03. Move the mouse pointer on "Search by category" on the header.
+	 * 04. Mouse hover on "TV, APPLIANCES..." option
+	 * 05. Click on "DSLR camera" option
+	 * 06. On the DSLR cameras PLP, click on the search text field.
+	 * 07. Enter "Nikon" in it
+	 * 08. Click on the very first result (whatever it is) that is getting displayed on the search page
+	 * 09. Find the window where the product title is available
+	 * 10. Get the title of the product on the corresponding page (PDP).
+	 * CHILD, DESCENDANT, FOLLOWING, FOLLOWING SIBLING, PRECEDING SIBLING, ANCESTOR
 	 */
-	public static void main(String[] args) throws InterruptedException {
-		//Invoke the browser
-		System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/chromedriver");
+	public static void main(String[] args) {
+		/* 1 */
+		System.setProperty("webdriver.chrome.driver", "/Users/love.vashista/Documents/Eclipse_Workspace/TEST/ActualTraining_SeleniumSessionProject/chromedriver");
 		WebDriver driver = new ChromeDriver();
 		
-		//Get navigated to the "amazon.com" site
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		
+		/* 2 */
 		driver.get("http://www.amazon.in");
 		
-		WebElement shopByCategory = driver.findElement(By.xpath("(//div[@class='nav-fill'])[3]/descendant::a[@id='nav-link-shopall']"));
-		WebElement tvAppliancesElectronics = driver.findElement(By.xpath("//span[@aria-label='Mobiles, Computers']/following-sibling::span"));
-		WebElement DSLRCameras = driver.findElement(By.xpath("//a[contains(@href,'digital-slr-cameras')]/child::span"));
-		
-		
+		/* 3, 4, 5 */
 		Actions a = new Actions(driver);
-		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
-		a.moveToElement(shopByCategory).build().perform();
-		Thread.sleep(2000);
-		a.moveToElement(tvAppliancesElectronics).build().perform();
-		Thread.sleep(2000);
-		a.moveToElement(DSLRCameras).click().build().perform();
 		
-		WebElement searchField = driver.findElement(By.xpath("//div[@class='nav-search-field ']/child::input"));
-		WebElement searchIcon = driver.findElement(By.xpath("//div[@class='nav-search-submit nav-sprite']/child::input"));
+		WebElement shopByCategory = driver.findElement(By.xpath("//div[@id='nav-main']/child::div/child::div[2]/a"));
+		WebElement tvAppliances = driver.findElement(By.xpath("//div[@id='nav-flyout-shopAll']/descendant::div[3]/child::span[7]"));
+		WebElement dslrCameras = driver.findElement(By.xpath("(//div[@class='nav-panel'])[8]/child::a/following-sibling::a[6]"));
 		
-		a.moveToElement(searchField).click().sendKeys("Nikon").
-		moveToElement(searchIcon).click().build().perform();
+		a.moveToElement(shopByCategory).pause(Duration.ofMillis(500)).moveToElement(tvAppliances).pause(Duration.ofMillis(500)).moveToElement(dslrCameras).click().build().perform();
 		
-		WebElement firstResult = driver.findElement(By.xpath("//ul[@id='s-results-list-atf']/child::li/descendant::img"));
+		/* 6, 7 */
+		WebElement searchField = driver.findElement(By.xpath("(//div[@class='nav-search-field ']/ancestor::div[1])/descendant::input"));
+		WebElement searchIcon = driver.findElement(By.xpath("(//div[@class='nav-left'])[2]/following::div/descendant::input"));
+		
+		a.moveToElement(searchField).click().sendKeys("Nikon").moveToElement(searchIcon).click().build().perform();
+		
+		/* 8 */
+		WebElement firstResult = driver.findElement(By.xpath("//div[@id='resultsCol']/descendant::a[2]/img"));
 		
 		a.moveToElement(firstResult).click().build().perform();
 		
@@ -63,20 +65,14 @@ public class _12_ActionsDemo {
 		
 		while(it.hasNext()) {
 			driver.switchTo().window(it.next());
-			int count = driver.findElements(By.cssSelector("span#productTitle")).size();
+			int count = driver.findElements(By.xpath("//div[@id='titleSection']/child::div/preceding-sibling::h1/child::span")).size();
 			if(count > 0) {
-				System.out.println(driver.findElement(By.cssSelector("span#productTitle")).getText());
+				System.out.println("Title Found: " + driver.findElement(By.xpath("//div[@id='titleSection']/child::div/preceding-sibling::h1/child::span")).getText());
 				break;
 			}else {
-				System.out.println("Element not found in the current window. Switching to the other window...");
+				System.out.println("Title not found on the current window. Switching to the other window...");
 				continue;
 			}
 		}
-		
-//		driver.switchTo().window(sw);
-//		
-//		System.out.println(driver.findElement(By.cssSelector("span#productTitle")).getText());
-		
-		System.out.println("Success");
 	}
 }
